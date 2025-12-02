@@ -1,5 +1,5 @@
 # 🎮 모바일 MOBA 리뷰 분석 프로젝트  
-### *Wild Rift vs Mobile Legends — 리뷰 시계열·감성·토픽 분석 보고서*
+### *Wild Rift vs Mobile Legends
 
 ---
 
