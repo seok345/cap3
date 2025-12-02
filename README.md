@@ -65,10 +65,10 @@ Mobile Legends 리뷰 수가 더 많아 **Under-sampling**으로 1:1 맞춤
 - Framework: PyTorch + HuggingFace
 
 ###  학습곡선 그래프 (Accuracy)
-![Accuracy Curve](accuracy_curve.png)
+![Accuracy Curve](image/accuracy_curve.png)
 
 ###  손실값 그래프 (Loss)
-![Loss Curve](loss_curve.png)
+![Loss Curve](image/loss_curve.png)
 
 본 그래프들은 **train_history.csv** 기반 자동 생성.
 
@@ -147,7 +147,7 @@ project/
  └── README.md
 ```
 ---
-## 5. 결과 예시
+## 5. 결과 
 * **감성 분석:** 와일드 리프트(긍정 60% / 부정 40%) vs 모바일 레전드(긍정 55% / 부정 45%)
 * ![분석 결과](image/4.png)
 * **토픽 모델링 키워드:**
