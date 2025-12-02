@@ -66,7 +66,7 @@ wild_rift_reviews_total_40000.csv
 ## ✔ 학습 데이터 균형화
 
 - MLBB 데이터가 더 많아 **Under-sampling 적용**  
-- Wild Rift ≈ MLBB = 20,000건씩 동일하게 맞춤
+- Wild Rift ≈ MLBB = 약 20,000건씩 동일하게 맞춤
 
 ---
 
