@@ -1,152 +1,214 @@
-#  모바일 MOBA 게임 리뷰 분석 프로젝트  
-### *Wild Rift vs Mobile Legends — NLP 기반 리뷰 분석*
+# 🎮 모바일 MOBA 리뷰 분석 프로젝트  
+### *Wild Rift vs Mobile Legends — 리뷰 시계열·감성·토픽 분석 보고서*
 
 ---
 
-##  1. 서론 (Introduction)
-
-모바일 게임 시장에서 MOBA 장르는 매우 큰 경쟁 구조를 가지고 있습니다.  
-본 프로젝트는 **'리그 오브 레전드: 와일드 리프트'**와 **'모바일 레전드: Bang Bang'**의  
-**Google Play Store 리뷰 40,000+ 건을 수집·분석**하여  
-유저들이 실제로 느끼는 **불만 요인(Pain Point)**, **만족 요인**,  
-그리고 **게임별 특징적인 문제점**을 텍스트 마이닝 기반으로 도출합니다.
+# ⚠️ 주의사항  
+- **평어체(~이다, ~한다) 사용**  
+- **경어체 금지 (~입니다, ~합니다 사용 금지)**  
+- **이미지 자료 적극 활용**
 
 ---
 
-##  2. 데이터 수집 (Data Collection)
+# 🏷 GitHub 카드 스타일 요약
 
-###  크롤링 방식
-- `google-play-scraper` 라이브러리를 활용하여 봇 차단 위험 없이 대량 수집
-- 게임별 리뷰 총합: **약 40,000건**
-- 저장 데이터 예시: App, Review, Rating, Date
+<div align="center">
 
-###  크롤링 코드 업로드  
- `01_scrape_mobile_legends.py`  
- `02_scrape_wild_rift.py`
+<table>
+<tr>
+<td width="45%" align="center">
+
+### 🟦 Wild Rift  
+<img src="image/wr.png" width="300">
+
+**출시(한국): 2021.10**  
+**리뷰 경향: 매칭·트롤 불만 증가**
+
+</td>
+<td width="45%" align="center">
+
+### 🟧 Mobile Legends  
+<img src="image/ml.png" width="300">
+
+**출시(한국): 2016~**  
+**리뷰 경향: 과금·밸런스 불만 증가**
+
+</td>
+</tr>
+</table>
+
+</div>
 
 ---
 
-##  3. 데이터 라벨링 (Data Labeling)
+# 📌 1. 서론
 
-별점 기반 Rule-Based Labeling 수행:
+본 프로젝트는 Google Play Store에서 수집한  
+**Wild Rift**와 **Mobile Legends** 리뷰 데이터를 기반으로  
+감성 변화, 월별 시계열 트렌드, 토픽 모델링을 분석하는 목적을 가진다.
 
-| 별점 | 라벨 | 설명 |
+두 게임 모두 MOBA 장르의 대표작이며 경쟁 관계이다.  
+유저들이 실제로 느끼는 불만 요인(Pain Point)과 긍정 요인을  
+정량적으로 파악하는 것이 주요 의미이다.
+
+사용 데이터는 리뷰 텍스트, 별점, 작성일(date), 앱명(app_name)으로 구성된다.
+
+---
+
+# 📌 2. 데이터 수집
+
+Google Play Scraper 라이브러리를 사용해 대량 데이터를 수집했다.  
+봇 차단 문제가 없어 Selenium보다 안정적이다.
+
+수집된 파일은 다음과 같다:
+
+```
+mobile_legends_reviews_total_40000.csv
+wild_rift_reviews_20000.csv
+```
+
+이미지 자료:
+
+<img src="image/collect.png" width="700">
+
+---
+
+# 📌 3. 데이터 라벨링
+
+라벨링은 rule-based 방식으로 rating 기준으로 나눈다.
+
+| 별점 | 라벨 | 의미 |
 |------|------|------|
-| 4~5점 | 1 | 긍정 |
-| 1~2점 | 0 | 부정 |
-| 3점 | 제외 | 중립(학습 노이즈 제거) |
+| 4~5 | 1 | 긍정 |
+| 1~2 | 0 | 부정 |
+| 3 | 제거 | 중립 |
 
- 최종 학습용 CSV: **combined_labeled_for_koelectra.csv**
-
----
-
-##  4. 탐색적 데이터 분석 (EDA)
-
-### ✔ 데이터 시각화
-- 긍정/부정 분포 파이 차트 생성  
-- 리뷰 길이, 단어빈도 등 기본 텍스트 통계 분석
-
-###  전처리(Preprocessing)
-- 불용문자 제거(Regex)
-- 반복 문자열 축소(ㅋㅋㅋㅋ → ㅋㅋ)
-- 결측/빈문자 제거
-
-###  데이터 균형화 (Balancing)
-Mobile Legends 리뷰 수가 더 많아 **Under-sampling**으로 1:1 맞춤  
-➡ Wild Rift 20,000건 / Mobile Legends 20,000건
+라벨링 과정에서 날짜(Date) 컬럼 유지 기능을 추가했다.  
+기존 저장본에 날짜가 누락되어 시계열 분석이 불가능했기 때문이다.
 
 ---
 
-##  5. 모델링 (KoELECTRA Fine-Tuning)
+# 📌 4. 탐색적 데이터 분석(EDA)
 
-###  학습 모델
-- **KoELECTRA-base-v3-discriminator**
-- Task: 감성 분석(Binary Classification)
-- Framework: PyTorch + HuggingFace
+## ✔ 데이터 분포 시각화
 
-###  학습곡선 그래프 (Accuracy)
-![Accuracy Curve](image/accuracy_curve.png)
+<img src="image/pie.png" width="600">
 
-###  손실값 그래프 (Loss)
-![Loss Curve](image/loss_curve.png)
+## ✔ 텍스트 전처리
 
-본 그래프들은 **train_history.csv** 기반 자동 생성.
+- 불용문자 제거  
+- 반복 문자 축소(ㅋㅋㅋㅋ → ㅋㅋ)  
+- 공백 정규화  
+- 빈 문자열 제거  
+
+## ✔ 학습 데이터 균형화
+
+- MLBB 데이터가 더 많아 **Under-sampling 적용**  
+- Wild Rift ≈ MLBB = 20,000건씩 동일하게 맞춤
 
 ---
 
-##  6. 학습곡선 그래프 자동 생성 코드
+# 📌 5. 학습 결과
 
-```python
-import pandas as pd
-import matplotlib.pyplot as plt
+## ✔ 학습 정확도 변화(Accuracy)
 
-df = pd.read_csv("train_history.csv")
+<img src="image/accuracy_curve.png" width="700">
 
-plt.figure(figsize=(14,6))
-plt.plot(df["epoch"], df["train_acc"], marker="o", label="Training Accuracy")
-plt.plot(df["epoch"], df["val_acc"], marker="o", label="Validation Accuracy")
-plt.title(" 학습 과정 정확도(Accuracy) 변화", fontsize=18)
-plt.xlabel("에포크(Epoch)")
-plt.ylabel("정확도(Accuracy)")
-plt.grid(True, alpha=0.3)
-plt.legend()
-plt.savefig("accuracy_curve.png", dpi=300)
-plt.show()
+## ✔ 손실 변화(Loss)
 
-plt.figure(figsize=(14,6))
-plt.plot(df["epoch"], df["train_loss"], marker="o", label="Training Loss")
-plt.plot(df["epoch"], df["val_loss"], marker="o", label="Validation Loss")
-plt.title(" 학습 과정 손실(Loss) 변화", fontsize=18)
-plt.xlabel("에포크(Epoch)")
-plt.ylabel("손실값(Loss)")
-plt.grid(True, alpha=0.3)
-plt.legend()
-plt.savefig("loss_curve.png", dpi=300)
-plt.show()
+<img src="image/loss_curve.png" width="700">
+
+---
+
+# 📌 6. 월별 시계열 감성 분석
+
+## ✔ Wild Rift와 MLBB 월별 감성 변화
+
+<img src="image/monthly_sentiment_compare.png" width="900">
+
+---
+
+# 🟥 왜 Wild Rift는 2021년 10월 이전 그래프가 없는가?
+
+Wild Rift는 한국 Google Play Store에 **2021년 10월 8일**에 출시되었다.  
+출시 이전에는 리뷰 자체가 존재하지 않기 때문에  
+2021년 10월 이전 감성 그래프는 비어 있는 것이 자연스러운 현상이다.
+
+| 기간 | 리뷰 존재 여부 | 이유 |
+|------|----------------|------|
+| 2020.10 ~ 2021.09 | ❌ 없음 | 한국 출시 전 |
+| 2021.10 이후 | ✔ 존재 | 리뷰 수집 가능 |
+
+이 현상은 데이터 결측이 아니라 **출시일 차이** 때문이다.
+
+---
+
+# 📌 7. 토픽 모델링 결과(LDA)
+
+## 🔵 Wild Rift 주요 토픽
+- 매칭  
+- 팀운  
+- 트롤  
+- 라인  
+
+## 🟠 Mobile Legends 주요 토픽
+- 현질  
+- 밸런스  
+- 스킨  
+- 영웅  
+
+시각자료:
+
+<img src="image/topics.png" width="800">
+
+---
+
+# 📌 8. 결론
+
+Wild Rift는 매칭 시스템과 트롤링 문제로 부정 감성이 증가한다.  
+Mobile Legends는 과금 유도와 캐릭터 밸런스 불만이 주된 부정 요인으로 나타난다.
+
+월별 감성 분석 결과,  
+두 게임 모두 패치 이후 감성 변화가 발생하는 패턴을 보인다.
+
+이미지 기반 분석 결과를 통해  
+유저 불만이 특정 시기나 업데이트와 연결됨을 확인할 수 있다.
+
+---
+
+# 📁 최종 보고서 구조(README)
+
 ```
-
----
-
-##  7. 결론 및 심화 분석
-
-###  LDA 토픽 모델링 결과
-- **Wild Rift 주요 키워드:** 매칭, 팀운, 트롤, 라인  
-- **Mobile Legends 주요 키워드:** 현질, 스킨, 밸런스, 영웅
-
-###  게임별 Pain Point 요약
-
-| 게임 | 주요 불만 요인 | 분석 결과 |
-|------|----------------|------------|
-| Wild Rift | 매칭 시스템, 트롤 | 공정성 부족, 제재 문제 |
-| Mobile Legends | 과금 유도, 밸런스 | 캐릭터 성능 불균형, 과금 압박 |
-
-###  인사이트
-- 리뷰의 시계열 분석 결과 패치 직후 불만 증가 현상 확인  
-- 키워드 네트워크 분석에서 Mobile Legends는 **과금 관련 단어**가 중심에 위치  
-- Wild Rift는 팀 관련 부정 단어가 집중적으로 등장  
-
----
-
-##  프로젝트 구조
-
-```
-project/
- ├── data/
+cap3/
  ├── image/
  │    ├── accuracy_curve.png
- │    └── loss_curve.png
- ├── src/
- │    ├── 01_scrape_mobile_legends.py
- │    ├── 02_scrape_wild_rift.py
- │    ├── 02_merge_and_label_data.py
- │    ├── 03_verify_data.py
- │    ├── 04_train_koelectra.py
- │    ├── 05_topic_modeling_lda.py
- │    └── 06_visualize_pie_chart.py
- ├── train_history.csv
- └── README.md
+ │    ├── loss_curve.png
+ │    ├── monthly_sentiment_compare.png
+ │    ├── wr.png
+ │    ├── ml.png
+ │    ├── collect.png
+ │    └── topics.png
+ ├── README.md  ← 본 파일
+ ├── combined_labeled_for_koelectra.csv
+ └── *.py
 ```
+
 ---
+
+# 📌 9. GitHub 카드 디자인 요소
+
+### ✔ 이미지 카드  
+<div align="center">
+<img src="image/compare_card.png" width="750">
+</div>
+
+### ✔ 게임별 감정 변화 카드  
+<div align="center">
+<img src="image/sentiment_card.png" width="750">
+</div>
+
+---
+
 ## 5. 결과 
 * **감성 분석:** 와일드 리프트(긍정 60% / 부정 40%) vs 모바일 레전드(긍정 55% / 부정 45%)
 * ![분석 결과](image/4.png)
