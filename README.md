@@ -92,7 +92,7 @@ T5-KoELECTRA 기반 감성 분류 모델을 활용했으며
 
 # 📌 6. 월별 긍정 비율 추이 & 역전 시점 분석
 
-<img src="monthly_sentiment_compare.png" width="1000">
+<img src="image/monthly_sentiment_compare.png" width="1000">
 
 ### 📊 분석 요약
 
